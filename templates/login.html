@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .button-39 {
+            background-color: #FFFFFF;
+            border: 1px solid rgb(209,213,219);
+            border-radius: .5rem;
+            box-sizing: border-box;
+            color: #111827;
+            font-family: "Inter var",ui-sans-serif,system-ui,-apple-system,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+            font-size: .875rem;
+            font-weight: 600;
+            line-height: 1.25rem;
+            padding: .75rem 1rem;
+            text-align: center;
+            text-decoration: none #D1D5DB solid;
+            text-decoration-thickness: auto;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        .button-39:hover {
+            background-color: rgb(249,250,251);
+        }
+
+        .button-39:focus {
+            outline: 2px solid transparent;
+            outline-offset: 2px;
+        }
+
+        .button-39:focus-visible {
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-gray-100">
+    <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm">
+        <div id="login-container" class="space-y-4">
+            <input type="password" id="password-input" class="w-full p-2 border border-gray-300 rounded-md" placeholder="Enter your password">
+            <button class="button-39 w-full" id="login-button">Login</button>
+        </div>
+        <div id="loading-dialog" class="hidden text-center mt-4 text-gray-500">Logging in...</div>
+        <div id="result-container" class="mt-4 hidden">
+            <p id="result-text" class="text-center text-gray-700">Login successful!</p>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#login-button').on('click', function() {
+                const passwordValue = $('#password-input').val().trim();
+                if (passwordValue) {
+                    $('#login-container').addClass('transform transition scale-75 translate-y-4');
+                    $('#loading-dialog').removeClass('hidden');
+
+                    $.ajax({
+                        type: 'POST',
+                        url: '/login',
+                        data: { password: passwordValue },
+                        success: function(response) {
+                            $('#loading-dialog').addClass('hidden');
+                            if (response === 'Invalid password') {
+                                $('#result-text').text('Invalid password');
+                            } else {
+                                $('#result-text').text('Login successful!');
+                                window.location.href = '/';
+                            }
+                            $('#result-container').removeClass('hidden');
+                        },
+                        error: function() {
+                            $('#loading-dialog').addClass('hidden');
+                            $('#result-text').text('An error occurred');
+                            $('#result-container').removeClass('hidden');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

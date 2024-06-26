@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Upload and Text Input</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .button-39 {
+            background-color: #1F2937;
+            border: 1px solid rgb(55,65,81);
+            border-radius: .5rem;
+            box-sizing: border-box;
+            color: #D1D5DB;
+            font-family: "Inter var",ui-sans-serif,system-ui,-apple-system,system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";
+            font-size: .875rem;
+            font-weight: 600;
+            line-height: 1.25rem;
+            padding: .75rem 1rem;
+            text-align: center;
+            text-decoration: none #D1D5DB solid;
+            text-decoration-thickness: auto;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        .button-39:hover {
+            background-color: rgb(31,41,55);
+        }
+
+        .button-39:focus {
+            outline: 2px solid transparent;
+            outline-offset: 2px;
+        }
+
+        .button-39:focus-visible {
+            box-shadow: none;
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-gray-900 text-gray-300">
+    <div class="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-lg">
+        <div id="input-container" class="space-y-4">
+            <h1 class="text-2xl font-bold text-center text-gray-300">Social Media Post Generator</h1>
+            <div class="flex space-x-4">
+                <textarea id="text-input" class="w-1/2 p-2 border border-gray-600 rounded-md bg-gray-700 text-gray-300" style="height: 300px;">Create post</textarea>
+                <div class="w-1/2">
+                    <div id="drop-zone" class="w-full h-32 p-2 border-2 border-dashed border-gray-600 rounded-md flex items-center justify-center text-gray-500 cursor-pointer">
+                        Drag and drop an image here or click to upload
+                    </div>
+                    <img id="uploaded-image" class="hidden mt-2 w-full max-h-32 object-contain">
+                </div>
+            </div>
+            <button class="button-39 w-full" id="submit-button">Submit</button>
+        </div>
+        <div id="loading-dialog" class="hidden text-center mt-4 text-gray-500">Loading...</div>
+        <div id="result-container" class="mt-4 hidden">
+            <p id="result-text" class="text-center text-gray-300"></p>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            const dropZone = $('#drop-zone');
+            const uploadedImage = $('#uploaded-image');
+            const submitButton = $('#submit-button');
+            const loadingDialog = $('#loading-dialog');
+            const resultContainer = $('#result-container');
+            const resultText = $('#result-text');
+            const inputContainer = $('#input-container');
+            const textInput = $('#text-input');
+
+            dropZone.on('click', function() {
+                const fileInput = $('<input type="file" accept="image/*">');
+                fileInput.on('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(event) {
+                            uploadedImage.attr('src', event.target.result);
+                            uploadedImage.removeClass('hidden');
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+                fileInput.click();
+            });
+
+            dropZone.on('dragover', function(e) {
+                e.preventDefault();
+                dropZone.addClass('bg-gray-700');
+            });
+
+            dropZone.on('dragleave', function() {
+                dropZone.removeClass('bg-gray-700');
+            });
+
+            dropZone.on('drop', function(e) {
+                e.preventDefault();
+                dropZone.removeClass('bg-gray-700');
+                const file = e.originalEvent.dataTransfer.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        uploadedImage.attr('src', event.target.result);
+                        uploadedImage.removeClass('hidden');
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            submitButton.on('click', function() {
+                const textValue = textInput.val().trim();
+                const imageSrc = uploadedImage.attr('src');
+                
+                if (textValue && imageSrc) {
+                    inputContainer.addClass('transform transition scale-75 translate-y-4');
+                    loadingDialog.removeClass('hidden');
+                    
+                    // Prepare data to send to the server
+                    const data = {
+                        base64_image: imageSrc.split(',')[1], // Remove the data URL prefix
+                        text_content: textValue
+                    };
+
+                    // Send data to the server
+                    $.ajax({
+                        url: '/gen_social',
+                        type: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify(data),
+                        success: function(response) {
+                            loadingDialog.addClass('hidden');
+                            console.log(response);
+                            resultText.text(response.response);
+                            resultContainer.removeClass('hidden');
+                        },
+                        error: function() {
+                            loadingDialog.addClass('hidden');
+                            resultText.text('An error occurred. Please try again.');
+                            resultContainer.removeClass('hidden');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
